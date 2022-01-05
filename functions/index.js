@@ -1,3 +1,12 @@
+const functions = require("firebase-functions");
+
+// // Create and Deploy Your First Cloud Functions
+// // https://firebase.google.com/docs/functions/write-firebase-functions
+//
+// exports.helloWorld = functions.https.onRequest((request, response) => {
+//   functions.logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });
 const express = require('express');
 const app = express();
 const { MongoClient } = require('mongodb');
@@ -24,9 +33,44 @@ async function run() {
         const employeeCollection = client.db("zenon_textile").collection("employees");
         const applicantCollection = client.db("zenon_textile").collection("applicants");
         const reviewCollection = client.db("zenon_textile").collection("reviews");
-        const pricingCollection = client.db("zenon_textile").collection("pricings");
-        const orderCollection = client.db('zenon_textile').collection("orders");
+        // const purchasedSedanCollection = client.db("sedan_mela").collection("purchasedSedan");
 
+        // get all the products
+        // app.get("/sedans", async (req, res) => {
+        //     const sedans = await sedanCollection.find({}).toArray();
+        //     res.json(sedans);
+        // })
+
+        // // get all the review
+        // app.get("/testimonials", async (req, res) => {
+        //     const testimonials = await testimonialCollection.find({}).toArray();
+        //     res.json(testimonials);
+        // })
+
+        // find a product using product id for purchasing
+        // app.get("/sedan/:id", async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //     const result = await sedanCollection.findOne(query);
+        //     res.json(result);
+        // })
+
+        // // get all booked product for admin to control in dashboard
+        // app.get("/purchasedSedan/All", async (req, res) => {
+        //     const result = await purchasedSedanCollection.find({}).toArray();
+        //     res.json(result);
+        // })
+
+        // // find booked products of a particular user
+        // app.get("/purchasedSedan", async (req, res) => {
+
+        //     const email = req.query.email;
+        //     const query = { email: email };
+        //     const result = await purchasedSedanCollection.find(query).toArray();
+        //     res.json(result);
+        // })
+
+        // get all registered users
         app.get("/users", async (req, res) => {
             const allUsers = await userCollection.find({}).toArray();
             res.json(allUsers);
@@ -43,16 +87,7 @@ async function run() {
             const employee = await employeeCollection.find({}).toArray();
             res.json(employee);
         })
-        app.get("/pricings", async (req, res) => {
-            const pricings = await pricingCollection.find({}).toArray();
-            res.json(pricings);
-        })
-        app.get("/pricings/:id", async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: ObjectId(id) };
-            const pricing = await pricingCollection.findOne(filter);
-            res.json(pricing);
-        })
+
         // confirming does the logged in user is admin or not
         app.get("/users/admin", async (req, res) => {
             const email = req.query.email;
@@ -78,18 +113,6 @@ async function run() {
             console.log(req.params.email);
             const particularUser = await applicantCollection.findOne({ email: req.params.email });
             res.json(particularUser);
-
-        })
-        app.get("/orders", async (req, res) => {
-            const orders = await orderCollection.find({}).toArray();
-            res.json(orders);
-        })
-        app.get("/orders/person", async (req, res) => {
-            const email = req.query.email;
-            console.log(req.query.email);
-
-            const order = await orderCollection.findOne({ email: email });
-            res.json(order);
 
         })
         // make a user admin
@@ -123,11 +146,6 @@ async function run() {
             const newUser = await applicantCollection.insertOne(req.body);
             res.json(newUser);
         })
-        app.post("/orders", async (req, res) => {
-
-            const order = await orderCollection.insertOne(req.body);
-            res.json(order);
-        })
         app.post("/employees", async (req, res) => {
 
             const newUser = await employeeCollection.insertOne(req.body);
@@ -137,7 +155,26 @@ async function run() {
             const review = await reviewCollection.insertOne(req.body);
             res.json(review);
         })
+        // post a new product
+        // app.post("/sedans", async (req, res) => {
+        //     const newSedan = await sedanCollection.insertOne(req.body);
+        //     res.json(newSedan);
+        // })
 
+        // // post a parchased item
+        // app.post('/purchasedSedan', async (req, res) => {
+        //     const body = req.body;
+        //     const result = await purchasedSedanCollection.insertOne(body);
+        //     res.json(result);
+        // })
+
+        // // post a review
+        // app.post("/testimonials", async (req, res) => {
+        //     const testimonial = await testimonialCollection.insertOne(req.body);
+        //     res.json(testimonial);
+        // })
+
+        // post a user who logged in using google
         app.put("/users", async (req, res) => {
             const filter = { email: req.body.email };
             const options = { upsert: true }
@@ -145,14 +182,33 @@ async function run() {
             const result = await userCollection.updateOne(filter, user, options);
             res.json(result);
         })
-        app.put("/orders/:id", async (req, res) => {
-            const filter = { _id: ObjectId(req.params.id) };
-            const upDoc = { $set: { "shipped": true } }
-            const orders = await orderCollection.updateOne(filter, upDoc);
-            res.json(orders);
-        })
-        // update a purchased product shipping status
 
+        // update a purchased product shipping status
+        // app.put("/purchasedSedan/All/:id", async (req, res) => {
+        //     const id = req.params.id;
+
+        //     const query = { _id: ObjectId(id) };
+        //     const updateDoc = { $set: { status: "shipped" } };
+        //     const options = { upsert: false };
+        //     const updatedStatus = await purchasedSedanCollection.updateOne(query, updateDoc, options);
+        //     res.json(updatedStatus);
+        // })
+
+        // // delete a purchased item from admin pannel
+        // app.delete("/purchasedSedan/All/:id", async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //     const deletedOrder = await purchasedSedanCollection.deleteOne(query);
+        //     res.json(deletedOrder);
+        // })
+
+        // // delete a product from admin pannel
+        // app.delete("/sedans/:id", async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //     const deletedSedan = await sedanCollection.deleteOne(query);
+        //     res.json(deletedSedan);
+        // })
     }
     finally {
 
@@ -167,3 +223,4 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
     console.log("Listening to port ", port);
 })
+exports.app = functions.https.onRequest(app);
